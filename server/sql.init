@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS vacations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  description TEXT NOT NULL,
+  destination VARCHAR(255) NOT NULL,
+  image VARCHAR(255) NOT NULL,
+  startDate DATE NOT NULL,
+  endDate DATE NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  followersCount INT DEFAULT 0
+);
+
+INSERT INTO vacations (description, destination, image, startDate, endDate, price, followersCount)
+VALUES 
+('חופשה מדהימה בפריז', 'פריז', 'paris.jpg', '2023-07-01', '2023-07-07', 1500.00, 0),
+('טיול מרתק ברומא', 'רומא', 'rome.jpg', '2023-08-15', '2023-08-22', 1200.00, 0),
+('חוויה מרגשת בטוקיו', 'טוקיו', 'tokyo.jpg', '2023-09-10', '2023-09-20', 2000.00, 0);
