@@ -1,142 +1,133 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { TextField, Button, Grid } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { createVacation, updateVacation } from '../slices/vacationSlice';
-import { RootState, AppDispatch } from '../store';
-
-interface VacationFormProps {
-  vacationId: number | null;
-}
-
-const VacationForm: React.FC<VacationFormProps> = ({ vacationId }) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const vacations = useSelector((state: RootState) => state.vacations.vacations);
-  const selectedVacation = vacations.find(v => v.id === vacationId);
-
-  const validationSchema = Yup.object({
-    destination: Yup.string().required('שדה חובה'),
-    description: Yup.string().required('שדה חובה'),
-    image: Yup.string().required('שדה חובה'),
-    startDate: Yup.date().required('שדה חובה'),
-    endDate: Yup.date().required('שדה חובה'),
-    price: Yup.number().positive('המחיר חייב להיות חיובי').required('שדה חובה'),
-  });
-
-  const formik = useFormik({
-    initialValues: {
-      destination: '',
-      description: '',
-      image: '',
-      startDate: null,
-      endDate: null,
-      price: '',
-    },
-    validationSchema: validationSchema,
-    onSubmit: (values) => {
-      if (vacationId) {
-        dispatch(updateVacation({ id: vacationId, ...values }));
-      } else {
-        dispatch(createVacation(values));
-      }
-    },
-  });
-
-  useEffect(() => {
-    if (selectedVacation) {
-      formik.setValues({
-        destination: selectedVacation.destination,
-        description: selectedVacation.description,
-        image: selectedVacation.image,
-        startDate: new Date(selectedVacation.startDate),
-        endDate: new Date(selectedVacation.endDate),
-        price: selectedVacation.price.toString(),
-      });
-    }
-  }, [selectedVacation]);
-
-  return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <form onSubmit={formik.handleSubmit}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              id="destination"
-              name="destination"
-              label="יעד"
-              value={formik.values.destination}
-              onChange={formik.handleChange}
-              error={formik.touched.destination && Boolean(formik.errors.destination)}
-              helperText={formik.touched.destination && formik.errors.destination}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              id="description"
-              name="description"
-              label="תיאור"
-              multiline
-              rows={4}
-              value={formik.values.description}
-              onChange={formik.handleChange}
-              error={formik.touched.description && Boolean(formik.errors.description)}
-              helperText={formik.touched.description && formik.errors.description}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              id="image"
-              name="image"
-              label="קישור לתמונה"
-              value={formik.values.image}
-              onChange={formik.handleChange}
-              error={formik.touched.image && Boolean(formik.errors.image)}
-              helperText={formik.touched.image && formik.errors.image}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <DatePicker
-              label="תאריך התחלה"
-              value={formik.values.startDate}
-              onChange={(value) => formik.setFieldValue('startDate', value)}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <DatePicker
-              label="תאריך סיום"
-              value={formik.values.endDate}
-              onChange={(value) => formik.setFieldValue('endDate', value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              id="price"
-              name="price"
-              label="מחיר"
-              type="number"
-              value={formik.values.price}
-              onChange={formik.handleChange}
-              error={formik.touched.price && Boolean(formik.errors.price)}
-              helperText={formik.touched.price && formik.errors.price}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Button color="primary" variant="contained" fullWidth type="submit">
-              {vacationId ? 'עדכן חופשה' : 'הוסף חופשה'}
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
-    </LocalizationProvider>
-  );
-};
-
-export default VacationForm;
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { TextField, Button, Grid } from '@mui/material';
+import { Vacation } from '../redux/vacationSlice';
+
+interface VacationFormProps {
+  vacationId?: number;
+  onSubmit: (vacation: Vacation) => void;
+  initialData?: Vacation | null;
+}
+
+const VacationForm: React.FC<VacationFormProps> = ({ vacationId, onSubmit, initialData }) => {
+  const { t } = useTranslation();
+  const [formData, setFormData] = useState<Vacation>({
+    id: 0,
+    destination: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    price: 0,
+    image: '',
+    followersCount: 0
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      setFormData({
+        id: 0,
+        destination: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        price: 0,
+        image: '',
+        followersCount: 0
+      });
+    }
+  }, [initialData]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            name="destination"
+            label={t('destination')}
+            value={formData.destination}
+            onChange={handleChange}
+            required
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            name="description"
+            label={t('description')}
+            value={formData.description}
+            onChange={handleChange}
+            multiline
+            rows={4}
+            required
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            name="startDate"
+            label={t('startDate')}
+            type="date"
+            value={formData.startDate}
+            onChange={handleChange}
+            InputLabelProps={{ shrink: true }}
+            required
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            name="endDate"
+            label={t('endDate')}
+            type="date"
+            value={formData.endDate}
+            onChange={handleChange}
+            InputLabelProps={{ shrink: true }}
+            required
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            name="price"
+            label={t('price')}
+            type="number"
+            value={formData.price}
+            onChange={handleChange}
+            required
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            name="image"
+            label={t('imageUrl')}
+            value={formData.image}
+            onChange={handleChange}
+            required
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Button type="submit" variant="contained" color="primary">
+            {vacationId ? t('updateVacation') : t('addVacation')}
+          </Button>
+        </Grid>
+      </Grid>
+    </form>
+  );
+};
+
+export default VacationForm;
+

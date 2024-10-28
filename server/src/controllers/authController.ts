@@ -1,36 +1,106 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import pool from '../db';
+import logger from '../utils/logger';
+import passport from 'passport';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your_jwt_secret';
+// הגדרת טיפוס User
+interface User {
+  id: number;
+  username: string;
+  role: 'user' | 'admin';
+}
 
-export const register = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+// פונקציה ליצירת משתמשים ברירת מחדל
+export const createDefaultUsers = async (): Promise<void> => {
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
-    res.status(201).send('משתמש נרשם בהצלחה');
+    const [existingUsers]: any = await pool.query('SELECT * FROM users LIMIT 1');
+    
+    if (existingUsers.length === 0) {
+      logger.info('Creating default users...');
+      
+      const defaultUsers = [
+        { username: 'admin', password: 'admin123', role: 'admin' },
+        { username: 'user', password: 'user123', role: 'user' }
+      ];
+
+      for (const user of defaultUsers) {
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+        await pool.query(
+          'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
+          [user.username, hashedPassword, user.role]
+        );
+        logger.info(`Created default user: ${user.username}`);
+      }
+    }
   } catch (error) {
-    res.status(500).send('שגיאה ברישום המשתמש');
+    logger.error('Error creating default users:', error);
+    throw error;
   }
 };
 
-export const login = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+export const login = (req: Request, res: Response): void => {
+    passport.authenticate('local', (err: any, user: any, info: any) => {
+        if (err) {
+            logger.error('Login error:', err);
+            res.status(500).json({ message: 'שגיאת שרת פנימית' });
+            return;
+        }
+
+        if (!user) {
+            logger.warn('Login failed:', info.message);
+            res.status(401).json({ message: info.message });
+            return;
+        }
+
+        req.logIn(user, (err) => {
+            if (err) {
+                logger.error('Session error:', err);
+                res.status(500).json({ message: 'שגיאת שרת פנימית' });
+                return;
+            }
+
+            logger.info(`User logged in successfully: ${user.username}`);
+            res.json({
+                id: user.id,
+                username: user.username,
+                role: user.role
+            });
+        });
+    })(req, res);
+};
+
+// קבלת פרטי משתמש
+export const getUserDetails = async (req: Request, res: Response): Promise<void> => {
   try {
-    const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
-    if (rows.length === 0) {
-      return res.status(401).send('שם משתמש או סיסמה לא נכונים');
+    const userId = req.user?.id;
+
+    if (!userId) {
+      logger.warn('User ID not found in request');
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
+
+    const [rows] = await pool.query(
+      'SELECT id, username, role FROM users WHERE id = ?',
+      [userId]
+    ) as [User[], any];
+
+    if (!rows || rows.length === 0) {
+      logger.warn(`User not found with ID: ${userId}`);
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
     const user = rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).send('שם משתמש או סיסמה ��א נכונים');
-    }
-    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
-    res.json({ token });
+    logger.info(`User details retrieved successfully: ${user.username}`);
+    res.json({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
   } catch (error) {
-    res.status(500).send('שגיאה בהתחברות');
+    logger.error('Error retrieving user details:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

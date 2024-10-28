@@ -1,0 +1,19 @@
+{
+  "vacationList": "רשימת חופשות",
+  "adminDashboard": "לוח בקרה למנהל",
+  "addVacation": "הוסף חופשה",
+  "editVacation": "ערוך חופשה",
+  "deleteVacation": "מחק חופשה",
+  "followersGraph": "גרף עוקבים",
+  "destination": "יעד",
+  "description": "תיאור",
+  "startDate": "תאריך התחלה",
+  "endDate": "תאריך סיום",
+  "price": "מחיר",
+  "image": "תמונה",
+  "follow": "עקוב",
+  "followers": "עוקבים",
+  "noVacationsAvailable": "אין חופשות זמינות כרגע.",
+  "errorFetchingVacations": "אירעה שגיאה בטעינת החופשות",
+  "loading": "טוען..."
+}

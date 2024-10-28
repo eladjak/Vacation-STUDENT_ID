@@ -1,24 +1,102 @@
-version: '3'
+version: '3.8'
 services:
-  server:
-    build: ./server
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "3003:80"
     depends_on:
-      - db
+      server:
+        condition: service_healthy
+    networks:
+      - app-network
     environment:
+      - REACT_APP_API_URL=http://localhost:3005
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: vacation-student_id-server-1
+    ports:
+      - "3005:3005"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
       - DB_HOST=db
       - DB_USER=root
       - DB_PASSWORD=rootpassword
       - DB_NAME=vacation_db
-  client:
-    build: ./client
-    ports:
-      - "3000:3000"
-  db:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: vacation_db
+      - SESSION_SECRET=your-strong-secret-key-here
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - app-network
     volumes:
-      - ./server/sql.init:/docker-entrypoint-initdb.d/init.sql
+      - ./server/public/images:/app/public/images
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    command: redis-server --appendonly yes
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=vacation_db
+      - MYSQL_ROOT_HOST=%
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./server/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    command: >
+      --default-authentication-plugin=mysql_native_password 
+      --character-set-server=utf8mb4 
+      --collation-server=utf8mb4_unicode_ci
+      --bind-address=0.0.0.0
+      --max_connections=1000
+      --wait_timeout=28800
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

@@ -1,11 +1,10 @@
 import express from 'express';
-import * as vacationController from '../controllers/vacationController';
+
+import { getVacations, getVacationById } from '../controllers/vacationController';
 
 const router = express.Router();
 
-router.get('/', vacationController.getAllVacations);
-router.post('/', vacationController.createVacation);
-router.put('/:id', vacationController.updateVacation);
-router.delete('/:id', vacationController.deleteVacation);
+router.get('/', getVacations);
+router.get('/:id', getVacationById);
 
 export default router;

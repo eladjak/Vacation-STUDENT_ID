@@ -1,20 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import logger from '../utils/logger';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your_jwt_secret';
-
-export const auth = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return res.status(401).send('אין הרשאה');
-  }
-
-  try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    (req as any).user = decoded;
+export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.isAuthenticated()) {
+        logger.warn('Unauthorized access attempt');
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+    }
     next();
-  } catch (error) {
-    res.status(401).send('טוקן לא תקין');
-  }
 };

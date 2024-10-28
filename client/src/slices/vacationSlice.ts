@@ -19,7 +19,7 @@ export const fetchVacations = createAsyncThunk('vacations/fetchVacations', async
   return response.data;
 });
 
-export const createVacation = createAsyncThunk('vacations/createVacation', async (vacationData: Omit<Vacation, 'id' | 'followersCount'>) => {
+export const createVacation = createAsyncThunk('vacations/createVacation', async (vacationData: Partial<Vacation>) => {
   const response = await axios.post<Vacation>('/api/vacations', vacationData);
   return response.data;
 });
@@ -54,7 +54,7 @@ const vacationSlice = createSlice({
       })
       .addCase(fetchVacations.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message || null;
+        state.error = action.error.message || 'An unknown error occurred';
       })
       .addCase(createVacation.fulfilled, (state, action) => {
         state.vacations.push(action.payload);

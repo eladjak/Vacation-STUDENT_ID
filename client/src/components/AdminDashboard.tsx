@@ -1,74 +1,912 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Grid, Paper, Typography, Button } from '@mui/material';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { fetchVacations, deleteVacation } from '../slices/vacationSlice';
-import { RootState, AppDispatch } from '../store';
-import VacationForm from './VacationForm';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const AdminDashboard: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const vacations = useSelector((state: RootState) => state.vacations.vacations);
-  const status = useSelector((state: RootState) => state.vacations.status);
-  const [selectedVacation, setSelectedVacation] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchVacations());
-    }
-  }, [status, dispatch]);
-
-  const handleDeleteVacation = (id: number) => {
-    dispatch(deleteVacation(id));
-  };
-
-  const chartData = {
-    labels: vacations.map(v => v.destination),
-    datasets: [
-      {
-        label: 'מספר עוקבים',
-        data: vacations.map(v => v.followersCount),
-        backgroundColor: 'rgba(75,192,192,0.6)',
-      },
-    ],
-  };
-
-  return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Paper>
-          <Typography variant="h4">לוח בקרה למנהל</Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Paper>
-          <Typography variant="h5">רשימת חופשות</Typography>
-          {vacations.map(vacation => (
-            <div key={vacation.id}>
-              <Typography>{vacation.destination}</Typography>
-              <Button onClick={() => setSelectedVacation(vacation.id)}>ערוך</Button>
-              <Button onClick={() => handleDeleteVacation(vacation.id)}>מחק</Button>
-            </div>
-          ))}
-        </Paper>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Paper>
-          <Typography variant="h5">הוסף/ערוך חופשה</Typography>
-          <VacationForm vacationId={selectedVacation} />
-        </Paper>
-      </Grid>
-      <Grid item xs={12}>
-        <Paper>
-          <Typography variant="h5">גרף עוקבים</Typography>
-          <Bar data={chartData} />
-        </Paper>
-      </Grid>
-    </Grid>
-  );
-};
-
-export default AdminDashboard;
+import React, { useState, useEffect } from 'react';
+
+
+
+
+
+
+
+import { useDispatch, useSelector } from 'react-redux';
+
+
+
+
+
+
+
+import { Box, CircularProgress, Alert, Grid, Paper, Typography, Button } from '@mui/material';
+
+
+
+
+
+
+
+import { useTranslation } from 'react-i18next';
+
+
+
+
+
+
+
+import { Bar } from 'react-chartjs-2';
+
+
+
+
+
+
+
+import { RootState, AppDispatch } from '../redux/store';
+
+
+
+
+
+
+
+import { fetchVacations, deleteVacation, addVacation, updateVacation, Vacation } from '../redux/vacationSlice';
+
+
+
+
+
+
+
+
+
+import VacationForm from './VacationForm';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const AdminDashboard: React.FC = () => {
+
+
+
+
+
+
+
+  const { t } = useTranslation();
+
+
+
+
+
+
+
+  const dispatch = useDispatch<AppDispatch>();
+
+
+
+
+
+
+
+  const vacations = useSelector((state: RootState) => state.vacations.vacations);
+
+
+
+
+
+
+
+  const status = useSelector((state: RootState) => state.vacations.status);
+
+
+
+
+
+
+
+  const error = useSelector((state: RootState) => state.vacations.error);
+
+
+
+
+
+
+
+  const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  useEffect(() => {
+
+
+
+
+
+
+
+    if (status === 'idle') {
+
+
+
+
+
+
+
+      dispatch(fetchVacations());
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+  }, [status, dispatch]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handleDeleteVacation = (id: number) => {
+
+
+
+
+
+
+
+    if (window.confirm('האם אתה בטוח שברצונך למחוק חופשה זו?')) {
+
+
+
+
+
+
+
+      dispatch(deleteVacation(id));
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handleSubmit = (vacation: Vacation) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (selectedVacation) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      dispatch(updateVacation(vacation));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    } else {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      dispatch(addVacation(vacation));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    setSelectedVacation(null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if (status === 'loading') {
+
+
+
+
+
+
+
+    return (
+
+
+
+
+
+
+
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+
+
+
+
+
+
+
+        <CircularProgress />
+
+
+
+
+
+
+
+      </Box>
+
+
+
+
+
+
+
+    );
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if (status === 'failed') {
+
+
+
+
+
+
+
+    return (
+
+
+
+
+
+
+
+      <Alert severity="error">{error}</Alert>
+
+
+
+
+
+
+
+    );
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const chartData = {
+
+
+
+
+
+
+
+    labels: vacations.map((v: Vacation) => v.destination),
+
+
+
+
+
+
+
+    datasets: [
+
+
+
+
+
+
+
+      {
+
+
+
+
+
+
+
+        label: 'מספר עוקבים',
+
+
+
+
+
+
+
+        data: vacations.map((v: Vacation) => v.followersCount),
+
+
+
+
+
+
+
+        backgroundColor: 'rgba(75,192,192,0.6)',
+
+
+
+
+
+
+
+      },
+
+
+
+
+
+
+
+    ],
+
+
+
+
+
+
+
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  return (
+
+
+
+
+
+
+
+    <Grid container spacing={3}>
+
+
+
+
+
+
+
+      <Grid item xs={12}>
+
+
+
+
+
+
+
+        <Paper>
+
+
+
+
+
+
+
+          <Typography variant="h4">{t('adminDashboard')}</Typography>
+
+
+
+
+
+
+
+        </Paper>
+
+
+
+
+
+
+
+      </Grid>
+
+
+
+
+
+
+
+      <Grid item xs={12} md={6}>
+
+
+
+
+
+
+
+        <Paper>
+
+
+
+
+
+
+
+          <Typography variant="h5">רשימת חופשות</Typography>
+
+
+
+
+
+
+
+          {vacations.map(vacation => (
+
+
+
+
+
+
+
+            <div key={vacation.id}>
+
+
+
+
+
+
+
+              <Typography>{vacation.destination}</Typography>
+
+
+
+
+
+
+
+              <Button onClick={() => setSelectedVacation(vacation)}>ערוך</Button>
+
+
+
+
+
+
+
+
+
+              <Button onClick={() => handleDeleteVacation(vacation.id)}>מחק</Button>
+
+
+
+
+
+
+
+            </div>
+
+
+
+
+
+
+
+          ))}
+
+
+
+
+
+
+
+        </Paper>
+
+
+
+
+
+
+
+      </Grid>
+
+
+
+
+
+
+
+      <Grid item xs={12} md={6}>
+
+
+
+
+
+
+
+        <Paper>
+
+
+
+
+
+
+
+          <Typography variant="h5">הוסף/ערוך חופשה</Typography>
+
+
+
+
+
+
+
+          <VacationForm 
+
+
+
+            vacationId={selectedVacation?.id}
+
+
+
+
+
+            onSubmit={handleSubmit}
+
+
+
+
+
+            initialData={selectedVacation}
+
+
+
+
+
+          />
+
+
+
+
+
+
+
+        </Paper>
+
+
+
+
+
+
+
+      </Grid>
+
+
+
+
+
+
+
+      <Grid item xs={12}>
+
+
+
+
+
+
+
+        <Paper>
+
+
+
+
+
+
+
+          <Typography variant="h5">גרף עוקבים</Typography>
+
+
+
+
+
+
+
+          <Bar data={chartData} />
+
+
+
+
+
+
+
+        </Paper>
+
+
+
+
+
+
+
+      </Grid>
+
+
+
+
+
+
+
+    </Grid>
+
+
+
+
+
+
+
+  );
+
+
+
+
+
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export default AdminDashboard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
