@@ -1,15 +1,30 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3005',
+  baseURL: 'http://localhost:3005/api',
+  headers: {
+    'Content-Type': 'application/json'
+  },
   withCredentials: true
+});
+
+// הוספת interceptor לטיפול בטוקן
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // הוספת interceptor לטיפול בשגיאות
 api.interceptors.response.use(
-  response => response,
-  error => {
-    console.error('API Error:', error);
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );

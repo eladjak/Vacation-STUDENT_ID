@@ -1,71 +1,53 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
-import vacationRoutes from './routes/vacations';
+import helmet from 'helmet';
+import { config } from './config';
 import authRoutes from './routes/auth';
-import { authenticateToken } from './middleware/auth';
-import { testConnection } from './db';
+import vacationRoutes from './routes/vacations';
+import healthRoutes from './routes/health';
+import { db } from './db';
 import logger from './utils/logger';
-import { createDefaultUsers } from './controllers/authController';
-import app from './app';  // שינוי מ-import { app }
-import pool from './db';
-import { Server } from 'http';
 
-const PORT = process.env.PORT || 3005;
-let server: Server;
+const app = express();
 
 // Middleware
-app.use(cors());
+app.use(helmet());
 app.use(express.json());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/vacations', authenticateToken, vacationRoutes);
+app.use('/api/vacations', vacationRoutes);
+app.use('/api/health', healthRoutes);
 
-// Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-    logger.info('Health check request received');
-    res.status(200).json({ status: 'OK' });
+// Error handling - using underscore for unused parameters
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Server error:', err);
+  res.status(500).json({ message: 'שגיאת שרת פנימית' });
 });
 
-// Graceful shutdown handler
-const gracefulShutdown = () => {
-    logger.info('Received shutdown signal. Starting graceful shutdown...');
-    
-    if (server) {
-        server.close(() => {
-            logger.info('Server closed');
-            
-            pool.end().then(() => {
-                logger.info('Database connection closed');
-                process.exit(0);
-            }).catch(err => {
-                logger.error('Error closing database connection:', err);
-                process.exit(1);
-            });
-        });
-    } else {
-        process.exit(0);
-    }
-};
-
-// Start server
+// בדיקת חיבור למסד הנתונים והפעלת השרת
 const startServer = async () => {
-    try {
-        await testConnection();
-        await createDefaultUsers();
-        
-        server = app.listen(PORT, () => {
-            logger.info(`Server is running on port ${PORT}`);
-        });
-        
-        // Graceful shutdown handlers
-        process.on('SIGTERM', gracefulShutdown);
-        process.on('SIGINT', gracefulShutdown);
-        
-    } catch (error) {
-        logger.error('Failed to start server:', error);
-        process.exit(1);
-    }
+  try {
+    // בדיקת חיבור למסד הנתונים
+    await db.query('SELECT 1');
+    logger.info('Database connection successful');
+
+    // הפעלת השרת
+    app.listen(config.server.port, () => {
+      logger.info(`Server is running on port ${config.server.port}`);
+      logger.info(`Environment: ${config.server.nodeEnv}`);
+      logger.info(`Client URL: ${config.server.clientUrl}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
 };
 
 startServer();

@@ -1,34 +1,26 @@
-FROM node:16-alpine
-
+FROM node:16-alpine as base
 WORKDIR /app
-
-# Install necessary tools first
-RUN apk add --no-cache bash wget
-
-# Copy package files
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy source code
+# Development stage
+FROM base as development
+ENV NODE_ENV=development
 COPY . .
+RUN npm install -g nodemon
+CMD ["npm", "run", "dev"]
 
-# Build TypeScript code
+# Build stage
+FROM base as builder
+COPY . .
 RUN npm run build
 
-# Add wait-for-it script
-COPY wait-for-it.sh ./wait-for-it.sh
-RUN chmod +x ./wait-for-it.sh
-
-# Copy and set permissions for entrypoint script
-COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
-
-# Create health check endpoint
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3005}/health || exit 1
-
-EXPOSE ${PORT:-3005}
-
-ENTRYPOINT ["/bin/sh", "./docker-entrypoint.sh"]
+# Production stage
+FROM node:16-alpine as production
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+RUN npm ci --only=production
+EXPOSE 3005
+CMD ["npm", "start"]

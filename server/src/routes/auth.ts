@@ -1,18 +1,8 @@
-import express from 'express';
-import { login } from '../controllers/authController';
-import logger from '../utils/logger';
+﻿import { Router } from 'express';
+import authController from '../controllers/auth';
 
-const router = express.Router();
+const router = Router();
 
-router.post('/login', login);
-
-router.get('/check-users', async (_req, res) => {
-    try {
-        res.json({ message: 'Users check endpoint' });
-    } catch (error) {
-        logger.error('Error checking users:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
+router.post('/login', authController.login);
 
 export default router;

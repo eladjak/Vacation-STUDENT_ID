@@ -1,0 +1,58 @@
+{
+  "common": {
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך"
+  },
+  "header": {
+    "login": "התחברות",
+    "register": "הרשמה",
+    "home": "דף הבית",
+    "admin": "ניהול",
+    "logout": "התנתק"
+  },
+  "auth": {
+    "login": "התחברות",
+    "register": "הרשמה",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "confirmPassword": "אימות סיסמה",
+    "passwordMismatch": "הסיסמאות אינן תואמות",
+    "registrationError": "שגיאה בהרשמה",
+    "loginError": "שם משתמש או סיסמה שגויים",
+    "submit": "אישור",
+    "registerLink": "להרשמה",
+    "loginLink": "להתחברות",
+    "haveAccount": "כבר יש לך חשבון?"
+  },
+  "vacation": {
+    "destination": "יעד",
+    "description": "תיאור",
+    "start_date": "תאריך התחלה",
+    "end_date": "תאריך סיום",
+    "price": "מחיר",
+    "image_url": "תמונה",
+    "management": "ניהול חופשות",
+    "addVacation": "הוסף חופשה",
+    "editVacation": "ערוך חופשה",
+    "confirmDelete": "אישור מחיקה",
+    "deleteMessage": "האם אתה בטוח שברצונך למחוק חופשה זו?",
+    "list": "רשימת חופשות",
+    "noVacations": "אין חופשות להצגה",
+    "followers": "עוקבים",
+    "stats": "סטטיסטיקות",
+    "showFollowedOnly": "הצג רק חופשות שאני עוקב אחריהן"
+  },
+  "form": {
+    "required": "שדה חובה",
+    "priceMin": "המחיר חייב להיות גדול מ-0",
+    "endDateError": "תאריך סיום חייב להיות אחרי תאריך התחלה"
+  },
+  "error": {
+    "loadData": "שגיאה בטעינת הנתונים",
+    "required": "שדה חובה",
+    "followAction": "שגיאה בפעולת המעקב"
+  }
+} 

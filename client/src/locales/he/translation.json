@@ -1,19 +1,40 @@
 {
-  "vacationList": "רשימת חופשות",
-  "adminDashboard": "לוח בקרה למנהל",
-  "addVacation": "הוסף חופשה",
-  "editVacation": "ערוך חופשה",
-  "deleteVacation": "מחק חופשה",
-  "followersGraph": "גרף עוקבים",
-  "destination": "יעד",
-  "description": "תיאור",
-  "startDate": "תאריך התחלה",
-  "endDate": "תאריך סיום",
-  "price": "מחיר",
-  "image": "תמונה",
-  "follow": "עקוב",
-  "followers": "עוקבים",
-  "noVacationsAvailable": "אין חופשות זמינות כרגע.",
-  "errorFetchingVacations": "אירעה שגיאה בטעינת החופשות",
-  "loading": "טוען..."
+  "common": {
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "yes": "כן",
+    "no": "לא"
+  },
+  "form": {
+    "required": "שדה חובה",
+    "priceMin": "המחיר חייב להיות גדול מ-0",
+    "endDateAfterStart": "תאריך סיום חייב להיות אחרי תאריך התחלה"
+  },
+  "header": {
+    "home": "דף הבית",
+    "admin": "ניהול",
+    "login": "התחברות",
+    "register": "הרשמה",
+    "logout": "התנתק"
+  },
+  "vacation": {
+    "destination": "יעד",
+    "description": "תיאור",
+    "price": "מחיר",
+    "image_url": "קישור לתמונה",
+    "start_date": "תאריך התחלה",
+    "end_date": "תאריך סיום"
+  },
+  "register": {
+    "title": "הרשמה",
+    "submit": "הירשם",
+    "loginLink": "כבר יש לך חשבון? התחבר כאן",
+    "passwordMismatch": "הסיסמאות אינן תואמות"
+  }
 }

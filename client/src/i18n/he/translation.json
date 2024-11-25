@@ -1,0 +1,17 @@
+{
+  "register": {
+    "title": "הרשמה",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "confirmPassword": "אימות סיסמה",
+    "submit": "הרשמה",
+    "loginLink": "כבר יש לך חשבון? התחבר כאן",
+    "passwordMismatch": "הסיסמאות אינן תואמות",
+    "error": "אירעה שגיאה בתהליך ההרשמה"
+  },
+  "errorBoundary": {
+    "title": "אופס! משהו השתבש",
+    "message": "אירעה שגיאה בלתי צפויה",
+    "retry": "נסה שוב"
+  }
+} 

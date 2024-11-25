@@ -1,0 +1,51 @@
+{
+  "common": {
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך"
+  },
+  "auth": {
+    "register": "הרשמה",
+    "login": "התחברות",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "confirmPassword": "אימות סיסמה",
+    "passwordMismatch": "הסיסמאות אינן תואמות",
+    "registrationError": "שגיאה בהרשמה",
+    "loginError": "שגיאה בהתחברות",
+    "submit": "שלח",
+    "haveAccount": "כבר יש לך חשבון?",
+    "title": "כותרת",
+    "error": "שגיאה"
+  },
+  "form": {
+    "required": "שדה חובה",
+    "priceMin": "המחיר חייב להיות גדול מ-0"
+  },
+  "header": {
+    "login": "התחברות"
+  },
+  "vacation": {
+    "destination": "יעד",
+    "description": "תיאור",
+    "price": "מחיר",
+    "image_url": "קישור לתמונה",
+    "start_date": "תאריך התחלה",
+    "end_date": "תאריך סיום",
+    "editVacation": "עריכת חופשה",
+    "confirmDelete": "אישור מחיקה",
+    "deleteMessage": "האם אתה בטוח שברצונך למחוק חופשה זו?"
+  },
+  "error": {
+    "loadData": "שגיאה בטעינת הנתונים"
+  },
+  "register": {
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "confirmPassword": "אימות סיסמה",
+    "submit": "הרשמה",
+    "loginLink": "התחברות"
+  }
+} 

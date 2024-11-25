@@ -1,26 +1,28 @@
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
-import { createClient } from 'redis';
-import logger from '../utils/logger';
+import { redisClient } from '../redis';
+import winston from 'winston';
 
-const redisClient = createClient({
-    url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-    legacyMode: false
-});
-
-redisClient.on('error', (err) => logger.error('Redis Client Error:', err));
-redisClient.on('connect', () => logger.info('Connected to Redis successfully'));
-
-redisClient.connect().catch(console.error);
-
-export const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+// מגביל כניסות לא תקינות
+export const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 דקות
+    max: 5, // מקסימום 5 נסיונות כניסה
     standardHeaders: true,
     legacyHeaders: false,
     store: new RedisStore({
-        sendCommand: (...args: any[]) => redisClient.sendCommand(args),
-        prefix: 'rate-limit:',
-    }),
-    message: 'Too many requests from this IP, please try again later.'
+        sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+        prefix: "login-limit:"
+    })
+});
+
+// מגביל בקשות כלליות
+export const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: new RedisStore({
+        sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+        prefix: "general-limit:"
+    })
 });

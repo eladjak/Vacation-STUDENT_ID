@@ -8,6 +8,10 @@ body {
   direction: rtl;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 .vacation-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -49,4 +53,9 @@ h1 {
   padding: 20px 0;
   background-color: #f0f0f0;
   margin: 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

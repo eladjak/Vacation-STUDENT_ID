@@ -1,0 +1,37 @@
+{
+  "header": {
+    "home": "דף הבית",
+    "admin": "ניהול",
+    "login": "התחברות",
+    "logout": "התנתק",
+    "register": "הרשמה"
+  },
+  "auth": {
+    "login": "התחברות",
+    "register": "הרשמה",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "submit": "שלח",
+    "error": "שגיאה בהתחברות",
+    "loginSuccess": "התחברות הצליחה",
+    "registerSuccess": "הרשמה הצליחה",
+    "noAccount": "עדיין אין לך חשבון?",
+    "registerNow": "הירשם עכשיו",
+    "welcome": "ברוכים הבאים למערכת"
+  },
+  "form": {
+    "required": "שדה חובה",
+    "error": "שגיאה"
+  },
+  "error": {
+    "general": "אירעה שגיאה",
+    "tryAgain": "נסה שוב",
+    "invalidCredentials": "שם משתמש או סיסמה שגויים"
+  },
+  "vacation": {
+    "title": "חופשות",
+    "add": "הוסף חופשה",
+    "edit": "ערוך חופשה",
+    "delete": "מחק חופשה"
+  }
+} 

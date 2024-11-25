@@ -1,0 +1,40 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "form": {
+    "required": "Required field",
+    "priceMin": "Price must be greater than 0",
+    "endDateAfterStart": "End date must be after start date"
+  },
+  "header": {
+    "home": "Home",
+    "admin": "Admin",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "vacation": {
+    "destination": "Destination",
+    "description": "Description",
+    "price": "Price",
+    "image_url": "Image URL",
+    "start_date": "Start Date",
+    "end_date": "End Date"
+  },
+  "register": {
+    "title": "Register",
+    "submit": "Register",
+    "loginLink": "Already have an account? Login here",
+    "passwordMismatch": "Passwords do not match"
+  }
+} 

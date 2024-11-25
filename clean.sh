@@ -1,16 +1,26 @@
 #!/bin/bash
 
-# עצירת כל הקונטיינרים
+echo "🧹 מתחיל תהליך ניקוי והתקנה..."
+
+# עצירת כל השירותים
+echo "⏹️ עוצר שירותים..."
 docker-compose down
 
-# מחיקת כל הווליומים
-docker volume rm $(docker volume ls -q)
+# ניקוי דוקר
+echo "🗑️ מנקה מערכת..."
+docker system prune -af --volumes
 
-# מחיקת כל התמונות
-docker rmi $(docker images -q)
+# מחיקת תיקיות build
+echo "🧹 מנקה תיקיות build..."
+rm -rf ./server/dist
+rm -rf ./client/build
 
-# ניקוי מטמון
-docker system prune -af
+# התקנת dependencies
+echo "📦 מתקין dependencies..."
+cd server && npm install
+cd ../client && npm install
+cd ..
 
-# הפעלה מחדש
+# הרצת המערכת
+echo "🚀 מעלה את המערכת..."
 docker-compose up --build

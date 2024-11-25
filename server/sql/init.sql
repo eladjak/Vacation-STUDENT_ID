@@ -1,59 +1,94 @@
--- הענקת הרשאות למשתמש root
-CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'rootpassword';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
+-- Set character encoding
+USE master;
+GO
 
--- יצירת מסד הנתונים אם לא קיים
-CREATE DATABASE IF NOT EXISTS vacation_db;
+-- Create database if not exists
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'vacation_db')
+BEGIN
+    CREATE DATABASE vacation_db;
+END
+GO
+
 USE vacation_db;
+GO
 
--- הגדרת קידוד
-SET NAMES utf8mb4;
-SET CHARACTER SET utf8mb4;
+-- Create users table if not exists
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[users]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[users] (
+        [id] INT IDENTITY(1,1) NOT NULL,
+        [username] NVARCHAR(50) NOT NULL,
+        [password] NVARCHAR(255) NOT NULL,
+        [role] NVARCHAR(10) NOT NULL CONSTRAINT DF_Users_Role DEFAULT 'user',
+        [created_at] DATETIME2 DEFAULT GETDATE(),
+        [updated_at] DATETIME2 DEFAULT GETDATE(),
+        CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED ([id] ASC),
+        CONSTRAINT [UQ_Users_Username] UNIQUE NONCLUSTERED ([username] ASC)
+    );
 
--- Drop tables if they exist
-DROP TABLE IF EXISTS followers;
-DROP TABLE IF EXISTS vacations;
-DROP TABLE IF EXISTS users;
-
--- Create users table
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('user', 'admin') NOT NULL DEFAULT 'user'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- הוספת משתמש ברירת מחדל
+    INSERT INTO [dbo].[users] ([username], [password], [role])
+    VALUES 
+        ('admin', '$2b$10$YourHashedPasswordHere', 'admin'),
+        ('user', '$2b$10$YourHashedPasswordHere', 'user');
+END
+GO
 
 -- Create vacations table
-CREATE TABLE vacations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    destination VARCHAR(255) NOT NULL,
-    description TEXT,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    image_url VARCHAR(255)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[vacations]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[vacations] (
+        [id] INT IDENTITY(1,1) NOT NULL,
+        [destination] NVARCHAR(100) NOT NULL,
+        [description] NTEXT NOT NULL,
+        [image_url] NVARCHAR(255) NULL,
+        [start_date] DATE NOT NULL,
+        [end_date] DATE NOT NULL,
+        [price] DECIMAL(10,2) NOT NULL,
+        [followers_count] INT DEFAULT 0,
+        [is_active] BIT DEFAULT 1,
+        [created_at] DATETIME2 DEFAULT GETDATE(),
+        [updated_at] DATETIME2 DEFAULT GETDATE(),
+        CONSTRAINT [PK_Vacations] PRIMARY KEY CLUSTERED ([id] ASC)
+    );
+END
+GO
 
--- Create followers table
-CREATE TABLE followers (
-    user_id INT,
-    vacation_id INT,
-    PRIMARY KEY (user_id, vacation_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (vacation_id) REFERENCES vacations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Create vacation_followers table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[vacation_followers]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[vacation_followers] (
+        [user_id] INT NOT NULL,
+        [vacation_id] INT NOT NULL,
+        [created_at] DATETIME2 DEFAULT GETDATE(),
+        CONSTRAINT [PK_VacationFollowers] PRIMARY KEY CLUSTERED ([user_id] ASC, [vacation_id] ASC),
+        CONSTRAINT [FK_VacationFollowers_Users] FOREIGN KEY ([user_id]) 
+            REFERENCES [dbo].[users] ([id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_VacationFollowers_Vacations] FOREIGN KEY ([vacation_id]) 
+            REFERENCES [dbo].[vacations] ([id]) ON DELETE CASCADE
+    );
+END
+GO
 
--- מחיקת נתונים קיימים
-DELETE FROM followers;
-DELETE FROM vacations;
-DELETE FROM users;
+-- Create indexes
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IDX_Vacation_Dates' AND object_id = OBJECT_ID('vacations'))
+BEGIN
+    CREATE INDEX [IDX_Vacation_Dates] ON [dbo].[vacations] ([start_date], [end_date]);
+END
+GO
 
--- הוספת משתמשים עם הסיסמאות המוצפנות
-INSERT INTO users (username, password, role) VALUES 
-('admin', '$2a$10$Sj1dmbipkwIma5YFgy1Beu7pEX3U.FceCZB0o.wUqsGW91lLIGvqC', 'admin'),
-('user', '$2a$10$k0XvVhWM8UKeLpu5gK/6rezsAwx2lGy5y0QVXC1EmsC8TkdLYb6Ia', 'user');
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IDX_Vacation_Followers' AND object_id = OBJECT_ID('vacation_followers'))
+BEGIN
+    CREATE INDEX [IDX_Vacation_Followers] ON [dbo].[vacation_followers] ([vacation_id]);
+END
+GO
 
--- הענקת הרשאות
-GRANT ALL PRIVILEGES ON vacation_db.* TO 'root'@'%';
-FLUSH PRIVILEGES;
+-- Update followers count
+UPDATE v
+SET v.followers_count = (
+    SELECT COUNT(*)
+    FROM vacation_followers vf
+    WHERE vf.vacation_id = v.id
+)
+FROM vacations v;
+GO

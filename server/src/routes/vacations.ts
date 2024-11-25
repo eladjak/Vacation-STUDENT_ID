@@ -1,10 +1,3 @@
-import express from 'express';
-
-import { getVacations, getVacationById } from '../controllers/vacationController';
-
+﻿import express from 'express';
 const router = express.Router();
-
-router.get('/', getVacations);
-router.get('/:id', getVacationById);
-
 export default router;

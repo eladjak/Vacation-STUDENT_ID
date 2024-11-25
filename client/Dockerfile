@@ -1,34 +1,32 @@
-# שלב הבנייה
-FROM node:16-alpine as build
+# Build stage
+FROM node:16-alpine as builder
 
+# Set working directory
 WORKDIR /app
 
-# העתקת קבצי package.json ו-package-lock.json (אם קיים)
+# Install dependencies first (better layer caching)
 COPY package*.json ./
 
-# התקנת תלויות
+# Clear npm cache and install dependencies
 RUN npm install
 
-# העתקת שאר קבצי המקור
+# Copy source files
 COPY . .
 
-# בניית האפליקציה
+# Build with specific environment variables
 RUN npm run build
 
-# שלב הייצור
+# Production stage
 FROM nginx:alpine
 
-# העתקת קבצי הבנייה לתיקיית ה-nginx
-COPY --from=build /app/build /usr/share/nginx/html
+# Copy build files
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# העתקת ה-favicon
-COPY --from=build /app/public/favicon.svg /usr/share/nginx/html/favicon.svg
-
-# העתקת קובץ קונפיגורציה מותאם של nginx
+# Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# חשיפת פורט 80
+# Expose port
 EXPOSE 80
 
-# הפעלת nginx
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,44 +1,56 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import bcrypt from 'bcryptjs';
-import pool from '../db';
-import logger from '../utils/logger';
+import { comparePasswords } from '../utils/auth';
+import { db } from '../db';
 import { RowDataPacket } from 'mysql2';
+import { User, BaseUser } from '../types/user';
+import logger from '../utils/logger';
 
-interface UserRecord extends RowDataPacket {
-    id: number;
-    username: string;
-    password: string;
-    role: 'user' | 'admin';
-}
+// הגדרת טיפוס לפונקציית done
+type DoneCallback = (error: any, user?: any, options?: { message: string }) => void;
 
-passport.use(new LocalStrategy(async (username: string, password: string, done) => {
-    try {
-        const [users] = await pool.query<UserRecord[]>(
-            'SELECT * FROM users WHERE username = ?',
-            [username]
-        );
+passport.use(new LocalStrategy(
+    {
+        usernameField: 'username',
+        passwordField: 'password'
+    },
+    async (username: string, password: string, done: DoneCallback) => {
+        try {
+            const [rows] = await db.execute<RowDataPacket[]>(
+                'SELECT * FROM users WHERE username = ?',
+                [username]
+            );
 
-        if (!users || users.length === 0) {
-            logger.warn(`User not found: ${username}`);
-            return done(null, false, { message: 'שם משתמש או סיסמה שגויים' });
+            if (!rows.length) {
+                logger.warn(`Login attempt failed: username ${username} not found`);
+                return done(null, false, { message: 'שם משתמש לא קיים' });
+            }
+
+            const user = rows[0] as User;
+            const isValid = await comparePasswords(password, user.password);
+
+            if (!isValid) {
+                logger.warn(`Login attempt failed: invalid password for user ${username}`);
+                return done(null, false, { message: 'סיסמה שגויה' });
+            }
+
+            // שליחת רק את המידע הבסיסי ללא סיסמה
+            const baseUser: BaseUser = {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                first_name: user.first_name,
+                last_name: user.last_name
+            };
+
+            logger.info(`User ${username} logged in successfully`);
+            return done(null, baseUser);
+        } catch (error) {
+            logger.error('Login error:', error);
+            return done(error);
         }
-
-        const user = users[0];
-        const isValid = await bcrypt.compare(password, user.password || '');
-        
-        if (!isValid) {
-            logger.warn(`Invalid password for user: ${username}`);
-            return done(null, false, { message: 'שם משתמש או סיסמה שגויים' });
-        }
-
-        logger.info(`User logged in successfully: ${username}`);
-        return done(null, user);
-    } catch (error) {
-        logger.error('Error during authentication:', error);
-        return done(error);
     }
-}));
+));
 
 passport.serializeUser((user: Express.User, done) => {
     done(null, user.id);
@@ -46,19 +58,23 @@ passport.serializeUser((user: Express.User, done) => {
 
 passport.deserializeUser(async (id: number, done) => {
     try {
-        const [users] = await pool.query<UserRecord[]>(
-            'SELECT id, username, role FROM users WHERE id = ?',
+        const [rows] = await db.execute<RowDataPacket[]>(
+            'SELECT id, username, role, first_name, last_name FROM users WHERE id = ?',
             [id]
         );
         
-        if (!users || users.length === 0) {
-            return done(new Error('User not found'));
+        if (!rows.length) {
+            logger.warn(`User deserialization failed: user ${id} not found`);
+            return done(new Error('משתמש לא נמצא'));
         }
-        
-        done(null, users[0]);
+
+        const user = rows[0] as BaseUser;
+        logger.debug(`User ${id} deserialized successfully`);
+        done(null, user);
     } catch (error) {
+        logger.error('User deserialization error:', error);
         done(error);
     }
 });
 
-export default passport;
+export default passport; 

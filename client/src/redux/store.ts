@@ -1,132 +1,53 @@
-import { configureStore } from '@reduxjs/toolkit';
-
-
-
-
-
-
-
-import vacationReducer from './vacationSlice';
-
-
-
-
-
-
-
-import authReducer from './authSlice';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export const store = configureStore({
-
-
-
-
-
-
-
-  reducer: {
-
-
-
-
-
-
-
-    vacations: vacationReducer,
-
-
-
-
-
-
-
-    auth: authReducer,
-
-
-
-
-
-
-
-  },
-
-
-
-
-
-
-
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export type RootState = ReturnType<typeof store.getState>;
-
-
-
-
-
-
-
-export type AppDispatch = typeof store.dispatch;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export default store;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import { configureStore } from '@reduxjs/toolkit';
+import vacationsReducer from './slices/vacationsSlice';
+import { apiSlice } from './slices/apiSlice';
+
+export const store = configureStore({
+  reducer: {
+    vacations: vacationsReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware)
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
