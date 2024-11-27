@@ -1,19 +1,27 @@
-import i18n from 'i18next';
+import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import translations from './he.json';
+import { translations } from './translations';
+import logger from '../utils/logger';
 
-i18n
+i18next
   .use(initReactI18next)
   .init({
     resources: {
-      he: translations
+      he: {
+        translation: translations.he
+      }
     },
     lng: 'he',
     fallbackLng: 'he',
-    defaultNS: 'translation',
     interpolation: {
       escapeValue: false
+    },
+    react: {
+      useSuspense: false
     }
+  })
+  .catch((error: Error) => {
+    logger.error('שגיאה באתחול i18n:', error);
   });
 
-export default i18n; 
+export default i18next; 
